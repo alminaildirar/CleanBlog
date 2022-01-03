@@ -1,8 +1,11 @@
 const express = require('express')
 const mongoose =require('mongoose')
+const methodOverride = require('method-override');
 const ejs = require('ejs')
 const path = require('path');
 const Blog = require('./models/Blog.js')
+const blogControllers = require('./controllers/blogControllers')
+const pageControllers = require('./controllers/pageControllers.js')
 
 
 const app = express()
@@ -20,32 +23,24 @@ app.set('view engine', 'ejs')
 app.use(express.static('public'))
 app.use(express.urlencoded({extended:true}))
 app.use(express.json())
+app.use(methodOverride('_method', {
+    methods:['POST','GET']
+  }))
 
 
 //Routers
-app.get('/', async(req,res) => {
-const blogs =  await Blog.find({})
- res.render('index', {
-     blogs
- })
-})
-app.get('/blogs/:id', async(req,res) => {
- const blog =  await Blog.findById(req.params.id)
- res.render('post', {
-      blog 
-})
-})
-app.get('/about', (req,res) => {
-    res.render('about')
-   })
-app.get('/add_post', (req,res) => {
- res.render('add_post')
-})
-app.post('/blogs',async(req,res)=> {
-    await Blog.create(req.body)
-    res.redirect('/')
-})
+app.get('/', blogControllers.getAllBlogs);
+app.get('/blogs/:id', blogControllers.getBlog)
+app.post('/blogs', blogControllers.createBlog)
+app.put('/blogs/:id', blogControllers.updateBlog)
+app.delete('/blogs/:id', blogControllers.deleteBlog)
 
+
+
+app.get('/about', pageControllers.getAboutPage)
+app.get('/add_post', pageControllers.getAddPage)
+
+app.get('/blogs/edit/:id', pageControllers.getEditPage)
 
 
 const port = 3000;
